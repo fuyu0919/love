@@ -12,5 +12,47 @@ export const SITE = {
 // 首页自我介绍，想改就改这里的段落
 export const INTRO = [
   '你好，我是子諭。',
-  '这里是我的个人网站，记录学习笔记、技术积累和一些随想。读书，学习，去更远的地方。',
+  '这里有两个入口：一边记录我的平凡日常，一边收藏我们的故事。',
 ];
+
+// ---------- 入口一：平凡日记 ----------
+export const DIARY = {
+  eyebrow: '01 / 个人记录',
+  title: '子諭的平凡日记',
+  subtitle: '读书 · 学习 · 去更远的地方',
+  description: '学习笔记、技术积累，还有一些生活里的碎碎念。',
+  href: '/blog/',
+};
+
+// ---------- 入口二：我们的故事 ----------
+export const STORY = {
+  eyebrow: '02 / 爱情记录',
+  title: '记录我们的故事',
+  subtitle: '把两个人的日子，慢慢收在这里',
+  description: '照片、视频，还有那些不想忘记的瞬间。',
+  href: '/story/',
+  // 改成你们在一起的那一天，首页会显示「在一起 X 天」
+  since: '2023-05-20',
+};
+
+// 故事页顶部的照片拼图（放 2~4 张合照最好看）
+export const STORY_HERO_PHOTOS = [
+  '/images/21.jpg',
+  '/images/20.jpg',
+  '/images/3.jpg',
+  '/images/5.jpg',
+];
+
+// 照片墙：换成你们的照片，改 src 和 caption 即可
+export const PHOTOS = [
+  { src: '/images/21.jpg', caption: '一起看过的城市' },
+  { src: '/images/3.jpg', caption: '黄昏的时候' },
+  { src: '/images/5.jpg', caption: '夜里的灯火' },
+  { src: '/images/8.jpg', caption: '走过的街角' },
+  { src: '/images/20.jpg', caption: '楼顶的晚风' },
+  { src: '/images/19.jpg', caption: '回家的路' },
+];
+
+// 视频区：把 mp4 放进 public/videos/，再在这里登记，例如
+// { title: '第一次一起旅行', src: '/videos/travel.mp4', poster: '/images/21.jpg' }
+export const VIDEOS: { title: string; src: string; poster?: string }[] = [];

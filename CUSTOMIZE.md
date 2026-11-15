@@ -110,7 +110,7 @@ const nav = [
 ];
 ```
 
-加一项就加一行；不想要「标签」页就把那行删掉。
+加一项就加一行；不想要哪一页就把那行删掉。
 
 ---
 
@@ -143,7 +143,42 @@ const nav = [
 
 ---
 
-## 8. 改完怎么发布
+## 8. 改「我们的故事」：照片和视频
+
+文件：`src/consts.ts`
+
+网站分两个入口：`平凡日记`（文章）和 `我们的故事`（照片、视频）。故事页的内容都在这几项里：
+
+```ts
+// 在一起的那一天，故事页会显示「一起走过 X 天」
+export const STORY = {
+  since: '2023-05-20',
+};
+
+// 故事页顶部 4 张拼图
+export const STORY_HERO_PHOTOS = ['/images/21.jpg', ...];
+
+// 照片墙：src 是图片路径，caption 是鼠标悬停时显示的文字
+export const PHOTOS = [
+  { src: '/images/21.jpg', caption: '一起看过的城市' },
+];
+```
+
+**加照片**：先把图片放进 `public/images/`，再在 `PHOTOS` 里加一行 `{ src: '/images/文件名.jpg', caption: '说明' }`。
+
+**加视频**：把视频文件（建议 mp4）放进 `public/videos/`（没有这个目录就新建），然后在 `VIDEOS` 里加一行：
+
+```ts
+export const VIDEOS = [
+  { title: '第一次一起旅行', src: '/videos/travel.mp4', poster: '/images/21.jpg' },
+];
+```
+
+`poster` 是视频封面图，可以不写。`VIDEOS` 为空时，页面上会显示一个「影像还在整理中」的占位区。
+
+---
+
+## 9. 改完怎么发布
 
 ```bash
 cd "D:\work buddy缓存\Claw\site"

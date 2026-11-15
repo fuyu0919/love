@@ -1,0 +1,109 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { STORY, STORY_HERO_PHOTOS, PHOTOS, VIDEOS } from '../consts';
+
+const [year, month, day] = STORY.since.split('-');
+const sinceText = `${year}.${month}.${day}`;
+---
+
+<BaseLayout title={STORY.title} description={STORY.description}>
+  <section class="story-hero">
+    <div class="story-hero-text">
+      <span class="portal-eyebrow">{STORY.eyebrow}</span>
+      <h1>{STORY.title}</h1>
+      <p class="story-sub">{STORY.subtitle}</p>
+      <p class="story-days">
+        从 {sinceText} 起，一起走过
+        <strong id="days-together" data-since={STORY.since}>—</strong>
+        天
+      </p>
+    </div>
+    <div class="story-collage">
+      {STORY_HERO_PHOTOS.slice(0, 4).map((src) => (
+        <img src={src} alt="" loading="lazy" />
+      ))}
+    </div>
+  </section>
+
+  <h2 class="section-title">
+    <span>照片墙</span>
+    <span class="section-note">{PHOTOS.length} 张照片</span>
+  </h2>
+  <div class="gallery">
+    {PHOTOS.map((photo, i) => (
+      <figure
+        class={`gallery-item${i === 0 ? ' gallery-item--wide' : ''}`}
+        data-photo={photo.src}
+        role="button"
+        tabindex="0"
+        aria-label={`查看照片：${photo.caption}`}
+      >
+        <img src={photo.src} alt={photo.caption} loading="lazy" />
+        <figcaption>{photo.caption}</figcaption>
+      </figure>
+    ))}
+  </div>
+
+  <h2 class="section-title">
+    <span>影像</span>
+    <span class="section-note">视频</span>
+  </h2>
+  {VIDEOS.length > 0 ? (
+    <div class="video-grid">
+      {VIDEOS.map((video) => (
+        <figure class="video-card">
+          <video controls preload="metadata" poster={video.poster} src={video.src}></video>
+          <figcaption>{video.title}</figcaption>
+        </figure>
+      ))}
+    </div>
+  ) : (
+    <div class="video-empty">
+      <div class="video-empty-icon">
+        <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+          <path d="M8 5v14l11-7z" fill="currentColor"></path>
+        </svg>
+      </div>
+      <p>影像还在整理中，很快和你见面。</p>
+      <p class="video-empty-hint">这里已经留好位置，等第一支视频住进来。</p>
+    </div>
+  )}
+
+  <dialog id="lightbox" class="lightbox">
+    <img alt="" />
+  </dialog>
+
+  <script is:inline>
+    // 在一起的天数
+    const daysEl = document.getElementById('days-together');
+    const since = daysEl && daysEl.dataset.since;
+    if (since) {
+      const diff = Date.now() - new Date(since + 'T00:00:00').getTime();
+      daysEl.textContent = String(Math.max(0, Math.floor(diff / 86400000)));
+    }
+
+    // 照片灯箱
+    const dlg = document.getElementById('lightbox');
+    const lightboxImg = dlg ? dlg.querySelector('img') : null;
+    document.querySelectorAll('[data-photo]').forEach((el) => {
+      const open = () => {
+        if (!dlg || !lightboxImg) return;
+        lightboxImg.src = el.dataset.photo;
+        dlg.showModal();
+      };
+      el.addEventListener('click', open);
+      el.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          open();
+        }
+      });
+    });
+    if (dlg) {
+      dlg.addEventListener('click', () => dlg.close());
+      dlg.addEventListener('close', () => {
+        if (lightboxImg) lightboxImg.src = '';
+      });
+    }
+  </script>
+</BaseLayout>

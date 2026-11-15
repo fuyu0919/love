@@ -24,8 +24,11 @@ const fmt = (d: Date) =>
   `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 ---
 
-<BaseLayout title="文章" description="全部文章归档">
-  <h1>文章</h1>
+<BaseLayout title="平凡日记" description="子諭的学习笔记、随笔与生活记录">
+  <h1>平凡日记</h1>
+  <p class="page-desc">
+    读书 · 学习 · 去更远的地方 · <a href="/tags/">按标签浏览</a>
+  </p>
   {years.map((year) => (
     <section class="year-group">
       <h2>{year}</h2>
