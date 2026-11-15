@@ -1,10 +1,29 @@
 # 部署指引 · yujianxiaoquan.online
 
+**已选定方案 A：Cloudflare Pages。** 下方方案 B、C 保留作备选参考。
+
 代码已配置好生产域名。剩余的是**托管平台 + DNS 解析**，需要你在阿里云和托管平台后台操作。
 
 ---
 
-## 前置：先确认域名状态
+## 第 0 步：把代码推到 GitHub
+
+项目已经是本地 git 仓库，并且有了首次提交。在 GitHub 新建一个仓库（**不要**勾选 README / .gitignore，保持空仓库），然后：
+
+```bash
+cd "D:\work buddy缓存\Claw\site"
+git remote add origin https://github.com/你的用户名/仓库名.git
+git branch -M main
+git push -u origin main
+```
+
+首次推送会要求登录。用 Personal Access Token 代替密码（GitHub → Settings → Developer settings → Personal access tokens → 勾选 `repo` 权限）。
+
+私有仓库也能接 Cloudflare Pages，不影响免费额度。
+
+---
+
+## 第 1 步：确认域名状态
 
 在阿里云「域名控制台」检查三件事：
 
@@ -12,7 +31,7 @@
 2. 域名状态是否为 `正常 / ok`，不是 `serverHold`
 3. 域名是否已续费、未过期
 
-当前实测：`yujianxiaoquan.online` 在阿里云 DNS（223.5.5.5）和 Google DNS（8.8.8.8）均返回 NXDOMAIN，即注册局没有委派。**域名没激活之前，任何解析配置都不会生效。**
+当前状态（2026-11-15 23:49 实测）：注册成功，注册时间 2026-11-15 23:44，到期 2027-11-15，状态 `add period`（新增期），NS 为阿里云默认的 `dns21/dns22.hichina.com`。解析记录尚未配置，属正常。
 
 ---
 
