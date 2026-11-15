@@ -32,10 +32,19 @@ const fmt = (d: Date) =>
       <ul class="post-list">
         {byYear.get(year)!.map((post) => (
           <li>
-            <a href={`/blog/${post.id}/`}>
-              {post.data.title}
-              {post.data.featured && <span class="badge">置顶</span>}
-            </a>
+            <div class="post-main">
+              <a href={`/blog/${post.id}/`}>
+                {post.data.title}
+                {post.data.featured && <span class="badge">置顶</span>}
+              </a>
+              {post.data.tags.length > 0 && (
+                <div class="post-tags">
+                  {post.data.tags.map((tag) => (
+                    <a class="chip" href={`/tags/${tag}/`}>#{tag}</a>
+                  ))}
+                </div>
+              )}
+            </div>
             <time datetime={post.data.pubDate.toISOString()}>{fmt(post.data.pubDate)}</time>
           </li>
         ))}

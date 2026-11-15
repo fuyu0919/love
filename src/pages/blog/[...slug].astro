@@ -22,7 +22,13 @@ const fmt = (d: Date) =>
       <h1>{post.data.title}</h1>
       <div class="post-meta">
         <time datetime={post.data.pubDate.toISOString()}>{fmt(post.data.pubDate)}</time>
-        {post.data.tags.map((tag) => <a href={`/tags/${tag}/`}>#{tag}</a>)}
+        {post.data.tags.length > 0 && (
+          <div class="post-tags">
+            {post.data.tags.map((tag) => (
+              <a class="chip" href={`/tags/${tag}/`}>#{tag}</a>
+            ))}
+          </div>
+        )}
       </div>
     </header>
     <div class="prose">

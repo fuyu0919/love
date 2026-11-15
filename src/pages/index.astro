@@ -13,10 +13,16 @@ const fmt = (d: Date) =>
 
 <BaseLayout>
   <section class="hero">
-    <img src={SITE.avatar} alt="头像" width="84" height="84" />
+    <img src={SITE.avatar} alt="头像" width="88" height="88" />
     <div>
       <h1>{SITE.name}</h1>
       <p class="tagline">{SITE.tagline}</p>
+      <div class="hero-links">
+        <a href="/blog/">文章</a>
+        <a href="/tags/">标签</a>
+        <a href="/about/">关于</a>
+        <a href={SITE.github} target="_blank" rel="noopener">GitHub</a>
+      </div>
     </div>
   </section>
 
@@ -31,10 +37,19 @@ const fmt = (d: Date) =>
   <ul class="post-list">
     {latest.map((post) => (
       <li>
-        <a href={`/blog/${post.id}/`}>
-          {post.data.title}
-          {post.data.featured && <span class="badge">置顶</span>}
-        </a>
+        <div class="post-main">
+          <a href={`/blog/${post.id}/`}>
+            {post.data.title}
+            {post.data.featured && <span class="badge">置顶</span>}
+          </a>
+          {post.data.tags.length > 0 && (
+            <div class="post-tags">
+              {post.data.tags.map((tag) => (
+                <a class="chip" href={`/tags/${tag}/`}>#{tag}</a>
+              ))}
+            </div>
+          )}
+        </div>
         <time datetime={post.data.pubDate.toISOString()}>{fmt(post.data.pubDate)}</time>
       </li>
     ))}

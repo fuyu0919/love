@@ -3,12 +3,21 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 
 const posts = await getCollection('posts');
-const tags = [...new Set(posts.flatMap((p) => p.data.tags))].sort();
+const counts = new Map<string, number>();
+for (const p of posts) {
+  for (const tag of p.data.tags) counts.set(tag, (counts.get(tag) ?? 0) + 1);
+}
+const tags = [...counts.keys()].sort((a, b) => counts.get(b)! - counts.get(a)!);
 ---
 
 <BaseLayout title="标签">
   <h1>标签</h1>
   <div class="tag-cloud">
-    {tags.map((tag) => <a href={`/tags/${tag}/`}>#{tag}</a>)}
+    {tags.map((tag) => (
+      <a href={`/tags/${tag}/`}>
+        #{tag}
+        <span class="count">{counts.get(tag)}</span>
+      </a>
+    ))}
   </div>
 </BaseLayout>
