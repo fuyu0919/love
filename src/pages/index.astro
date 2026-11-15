@@ -1,0 +1,42 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE, INTRO } from '../consts';
+
+const posts = (await getCollection('posts')).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+);
+const latest = posts.slice(0, 6);
+const fmt = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+---
+
+<BaseLayout>
+  <section class="hero">
+    <img src={SITE.avatar} alt="头像" width="84" height="84" />
+    <div>
+      <h1>{SITE.name}</h1>
+      <p class="tagline">{SITE.tagline}</p>
+    </div>
+  </section>
+
+  <section class="intro">
+    {INTRO.map((p) => <p>{p}</p>)}
+  </section>
+
+  <h2 class="section-title">
+    <span>最近文章</span>
+    <a class="more" href="/blog/">全部文章 →</a>
+  </h2>
+  <ul class="post-list">
+    {latest.map((post) => (
+      <li>
+        <a href={`/blog/${post.id}/`}>
+          {post.data.title}
+          {post.data.featured && <span class="badge">置顶</span>}
+        </a>
+        <time datetime={post.data.pubDate.toISOString()}>{fmt(post.data.pubDate)}</time>
+      </li>
+    ))}
+  </ul>
+</BaseLayout>

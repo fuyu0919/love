@@ -1,0 +1,45 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const posts = (await getCollection('posts')).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+);
+
+// 置顶文章排最前，其余按日期倒序
+const sorted = [
+  ...posts.filter((p) => p.data.featured),
+  ...posts.filter((p) => !p.data.featured),
+];
+
+const byYear = new Map<number, typeof posts>();
+for (const p of sorted) {
+  const y = p.data.pubDate.getFullYear();
+  if (!byYear.has(y)) byYear.set(y, []);
+  byYear.get(y)!.push(p);
+}
+const years = [...byYear.keys()].sort((a, b) => b - a);
+
+const fmt = (d: Date) =>
+  `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+---
+
+<BaseLayout title="文章" description="全部文章归档">
+  <h1>文章</h1>
+  {years.map((year) => (
+    <section class="year-group">
+      <h2>{year}</h2>
+      <ul class="post-list">
+        {byYear.get(year)!.map((post) => (
+          <li>
+            <a href={`/blog/${post.id}/`}>
+              {post.data.title}
+              {post.data.featured && <span class="badge">置顶</span>}
+            </a>
+            <time datetime={post.data.pubDate.toISOString()}>{fmt(post.data.pubDate)}</time>
+          </li>
+        ))}
+      </ul>
+    </section>
+  ))}
+</BaseLayout>

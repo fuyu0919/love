@@ -1,0 +1,14 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const posts = await getCollection('posts');
+const tags = [...new Set(posts.flatMap((p) => p.data.tags))].sort();
+---
+
+<BaseLayout title="标签">
+  <h1>标签</h1>
+  <div class="tag-cloud">
+    {tags.map((tag) => <a href={`/tags/${tag}/`}>#{tag}</a>)}
+  </div>
+</BaseLayout>

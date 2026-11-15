@@ -1,0 +1,20 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../consts';
+---
+
+<BaseLayout title="关于">
+  <h1>关于</h1>
+  <div class="prose">
+    <p>我是 {SITE.name}，「{SITE.tagline}」。</p>
+    <p>
+      这里是我的个人网站，用来记录学习笔记、技术积累和一些随想。内容大多是读书和学习过程中留下的痕迹，也有对生活的碎碎念。
+    </p>
+    <p>如果你对这里的内容有想法，欢迎联系我：</p>
+    <ul>
+      <li>邮箱：<a href={`mailto:${SITE.email}`}>{SITE.email}</a></li>
+      <li>GitHub：<a href={SITE.github}>{SITE.github.replace('https://', '')}</a></li>
+    </ul>
+    <p>本站使用 <a href="https://astro.build">Astro</a> 构建，托管在静态服务器上，没有追踪脚本。</p>
+  </div>
+</BaseLayout>
