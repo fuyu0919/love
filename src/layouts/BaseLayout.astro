@@ -52,17 +52,8 @@ const isActive = (href: string) =>
     </div>
     <script is:inline define:vars={{ answer: GATE.answer }}>
       (function () {
-        const KEY = 'ziyu-gate-v1';
         const gate = document.getElementById('gate');
         if (!gate) return;
-        let unlocked = false;
-        try {
-          unlocked = localStorage.getItem(KEY) === 'ok';
-        } catch (e) {}
-        if (unlocked) {
-          gate.remove();
-          return;
-        }
         document.documentElement.classList.add('gate-open');
         const form = document.getElementById('gate-form');
         const input = document.getElementById('gate-input');
@@ -70,9 +61,6 @@ const isActive = (href: string) =>
         form.addEventListener('submit', (e) => {
           e.preventDefault();
           if (input.value.trim() === String(answer)) {
-            try {
-              localStorage.setItem(KEY, 'ok');
-            } catch (e) {}
             document.documentElement.classList.remove('gate-open');
             gate.remove();
           } else {
