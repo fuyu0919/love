@@ -15,6 +15,13 @@ export const INTRO = [
   '这里有两个入口：一边记录我的平凡日常，一边收藏我们的故事。',
 ];
 
+// 进站问题：答对才能进入站点（前端简单遮挡，不是真正的安全防护）
+export const GATE = {
+  question: '小全的生日',
+  answer: '0206',
+  hint: '四位数，月和日',
+};
+
 // ---------- 入口一：平凡日记 ----------
 export const DIARY = {
   eyebrow: '01 / 个人记录',

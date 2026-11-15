@@ -178,7 +178,25 @@ export const VIDEOS = [
 
 ---
 
-## 9. 改完怎么发布
+## 9. 改进站暗号
+
+文件：`src/consts.ts`
+
+```ts
+export const GATE = {
+  question: '小全的生日',
+  answer: '0206',
+  hint: '四位数，月和日',
+};
+```
+
+第一次进入时需要回答问题，答对后浏览器会记住（存在 localStorage），换浏览器或清理缓存后会再问一次。
+
+注意：答案写在前端代码里，只能挡住随手点进来的人，不能当作真正的密码保护。
+
+---
+
+## 10. 改完怎么发布
 
 ```bash
 cd "D:\work buddy缓存\Claw\site"
