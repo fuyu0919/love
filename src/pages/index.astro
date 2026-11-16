@@ -1,7 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { SITE, INTRO, DIARY, STORY, STORY_HERO_PHOTOS } from '../consts';
+import { SITE, INTRO, DIARY, STORY, STORY_HERO_PHOTOS, GATE } from '../consts';
 
 const posts = (await getCollection('posts')).sort(
   (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
@@ -12,6 +12,48 @@ const fmt = (d: Date) =>
 ---
 
 <BaseLayout>
+  <div id="gate" class="gate">
+    <form class="gate-card" id="gate-form" autocomplete="off">
+      <p class="gate-eyebrow">{SITE.title}</p>
+      <h1>先对个暗号</h1>
+      <p class="gate-q">问题：{GATE.question}</p>
+      <input
+        id="gate-input"
+        type="password"
+        inputmode="numeric"
+        placeholder="请输入答案"
+        aria-label="答案"
+        autofocus
+      />
+      <p class="gate-error" id="gate-error" role="alert"></p>
+      <button type="submit">进入</button>
+      <p class="gate-hint">{GATE.hint}</p>
+    </form>
+  </div>
+  <script is:inline define:vars={{ answer: GATE.answer }}>
+    (function () {
+      const gate = document.getElementById('gate');
+      if (!gate) return;
+      document.documentElement.classList.add('gate-open');
+      const form = document.getElementById('gate-form');
+      const input = document.getElementById('gate-input');
+      const error = document.getElementById('gate-error');
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        if (input.value.trim() === String(answer)) {
+          document.documentElement.classList.remove('gate-open');
+          gate.remove();
+        } else {
+          error.textContent = '答案不对，再试试～';
+          form.classList.remove('shake');
+          void form.offsetWidth;
+          form.classList.add('shake');
+          input.select();
+        }
+      });
+    })();
+  </script>
+
   <section class="hero hero--compact">
     <img src={SITE.avatar} alt="头像" width="88" height="88" />
     <div>
