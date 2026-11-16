@@ -102,6 +102,13 @@ const isActive = (href: string) =>
           <a href={SITE.github} target="_blank" rel="noopener">GitHub</a>
         </div>
         <div>© {new Date().getFullYear()} {SITE.name} · 用 Astro 搭建</div>
+        {SITE.icp && (
+          <div class="icp">
+            <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">
+              {SITE.icp}
+            </a>
+          </div>
+        )}
       </div>
     </footer>
   </body>

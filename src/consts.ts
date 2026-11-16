@@ -7,6 +7,8 @@ export const SITE = {
   avatar: '/images/111.jpg',
   email: '1025490868@qq.com',
   github: 'https://github.com/Ziyu09',
+  // ICP 备案号：备案通过后填这里，例如 '京ICP备2026000000号-1'。留空则不显示。
+  icp: '',
 };
 
 // 首页自我介绍，想改就改这里的段落
