@@ -1,0 +1,47 @@
+---
+export const prerender = false;
+
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import PostForm from '../../../components/admin/PostForm.astro';
+import type { PostInput } from '../../../server/db';
+import { createPost } from '../../../server/db';
+import { parsePostForm } from '../../../server/postForm';
+
+let error = '';
+let input: PostInput = {
+  slug: '',
+  title: '',
+  summary: '',
+  body: '',
+  tags: [],
+  featured: false,
+  status: 'published',
+  pub_date: new Date().toISOString().slice(0, 10),
+};
+
+if (Astro.request.method === 'POST') {
+  const parsed = parsePostForm(await Astro.request.formData());
+  input = parsed.input;
+  if (parsed.error) {
+    error = parsed.error;
+  } else {
+    createPost(input);
+    return Astro.redirect('/admin/posts');
+  }
+}
+---
+
+<AdminLayout title="写新日记" active="posts">
+  <div class="admin-head">
+    <div>
+      <h1>写新日记</h1>
+      <p>正文支持 Markdown。</p>
+    </div>
+  </div>
+
+  <div class="admin-card">
+    <form method="post">
+      <PostForm input={input} error={error} submitLabel="保存日记" />
+    </form>
+  </div>
+</AdminLayout>

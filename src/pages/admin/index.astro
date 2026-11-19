@@ -1,0 +1,72 @@
+---
+export const prerender = false;
+
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { listPosts, mediaStats, postStats } from '../../server/db';
+
+const stats = postStats();
+const media = mediaStats();
+const recent = listPosts().slice(0, 5);
+---
+
+<AdminLayout title="概览">
+  <div class="admin-head">
+    <div>
+      <h1>概览</h1>
+      <p>你好，{Astro.locals.admin?.username}。这里是你站点的内容入口。</p>
+    </div>
+    <a class="btn btn--primary" href="/admin/posts/new">写新日记</a>
+  </div>
+
+  <div class="admin-cards">
+    <div class="stat"><span>日记总数</span><strong>{stats.total}</strong></div>
+    <div class="stat"><span>已发布</span><strong>{stats.published}</strong></div>
+    <div class="stat"><span>草稿</span><strong>{stats.drafts}</strong></div>
+    <div class="stat"><span>照片</span><strong>{media.photos}</strong></div>
+    <div class="stat"><span>视频</span><strong>{media.videos}</strong></div>
+    <div class="stat"><span>时间轴</span><strong>{media.timeline}</strong></div>
+  </div>
+
+  <div class="admin-card">
+    <div class="admin-head">
+      <div>
+        <h1 style="font-size:17px">最近的日记</h1>
+        <p>按置顶和日期排序。</p>
+      </div>
+      <a class="btn btn--sm" href="/admin/posts">全部日记</a>
+    </div>
+
+    {recent.length === 0 ? (
+      <p class="empty">还没有内容，点右上角写第一篇。</p>
+    ) : (
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>标题</th>
+            <th>日期</th>
+            <th>状态</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {recent.map((post) => (
+            <tr>
+              <td>{post.title}</td>
+              <td>{post.pub_date}</td>
+              <td>
+                <span class={`badge ${post.status === 'published' ? 'badge--published' : 'badge--draft'}`}>
+                  {post.status === 'published' ? '已发布' : '草稿'}
+                </span>
+              </td>
+              <td>
+                <div class="row-actions">
+                  <a class="btn btn--sm" href={`/admin/posts/${post.id}`}>编辑</a>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    )}
+  </div>
+</AdminLayout>

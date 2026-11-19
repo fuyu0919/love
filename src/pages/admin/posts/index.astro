@@ -1,0 +1,79 @@
+---
+export const prerender = false;
+
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { listPosts } from '../../../server/db';
+
+// 列表页的删除按钮会 POST 到 /admin/posts/[id]
+if (Astro.request.method === 'POST') {
+  return Astro.redirect('/admin/posts');
+}
+
+const posts = listPosts();
+---
+
+<AdminLayout title="日记" active="posts">
+  <div class="admin-head">
+    <div>
+      <h1>日记</h1>
+      <p>共 {posts.length} 篇。公开页面目前仍读取 src/content/posts 里的 Markdown。</p>
+    </div>
+    <a class="btn btn--primary" href="/admin/posts/new">写新日记</a>
+  </div>
+
+  <div class="admin-card">
+    {posts.length === 0 ? (
+      <p class="empty">还没有日记。</p>
+    ) : (
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>标题</th>
+            <th>日期</th>
+            <th>标签</th>
+            <th>状态</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {posts.map((post) => {
+            let tags: string[] = [];
+            try {
+              tags = JSON.parse(post.tags);
+            } catch {
+              tags = [];
+            }
+            return (
+              <tr>
+                <td>
+                  {post.title}
+                  {post.featured === 1 && <span class="badge" style="margin-left:8px">置顶</span>}
+                </td>
+                <td>{post.pub_date}</td>
+                <td>{tags.map((tag) => `#${tag}`).join(' ')}</td>
+                <td>
+                  <span class={`badge ${post.status === 'published' ? 'badge--published' : 'badge--draft'}`}>
+                    {post.status === 'published' ? '已发布' : '草稿'}
+                  </span>
+                </td>
+                <td>
+                  <div class="row-actions">
+                    <a class="btn btn--sm" href={`/admin/posts/${post.id}`}>编辑</a>
+                    <form
+                      method="post"
+                      action={`/admin/posts/${post.id}`}
+                      onsubmit="return confirm('确定删除这篇日记？');"
+                    >
+                      <input type="hidden" name="action" value="delete" />
+                      <button class="btn btn--sm btn--danger" type="submit">删除</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    )}
+  </div>
+</AdminLayout>

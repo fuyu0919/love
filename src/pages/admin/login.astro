@@ -1,0 +1,72 @@
+---
+export const prerender = false;
+
+import '../../styles/admin.css';
+import {
+  SESSION_COOKIE,
+  clearLoginFailures,
+  createSession,
+  isSecureRequest,
+  loginBlocked,
+  recordLoginFailure,
+  verifyLogin,
+} from '../../server/auth';
+
+let error = '';
+
+if (Astro.request.method === 'POST') {
+  const ip = Astro.clientAddress || 'unknown';
+  if (loginBlocked(ip)) {
+    error = '尝试次数过多，请 15 分钟后再试。';
+  } else {
+    const form = await Astro.request.formData();
+    const admin = verifyLogin(
+      String(form.get('username') ?? ''),
+      String(form.get('password') ?? '')
+    );
+    if (!admin) {
+      recordLoginFailure(ip);
+      error = '账号或密码不正确。';
+    } else {
+      clearLoginFailures(ip);
+      const { token, maxAge } = createSession(admin.id);
+      Astro.cookies.set(SESSION_COOKIE, token, {
+        path: '/',
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: isSecureRequest(Astro.request),
+        maxAge,
+      });
+      return Astro.redirect('/admin');
+    }
+  }
+}
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>登录 · 后台</title>
+  </head>
+  <body>
+    <div class="login-page">
+      <form class="login-card" method="post" action="/admin/login">
+        <h1>站点后台</h1>
+        <p class="sub">登录后可以写日记、管理照片和故事时间轴。</p>
+        {error && <div class="alert alert--error">{error}</div>}
+        <div class="field">
+          <label for="username">账号</label>
+          <input id="username" name="username" type="text" autocomplete="username" required autofocus />
+        </div>
+        <div class="field">
+          <label for="password">密码</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" required />
+        </div>
+        <button class="btn btn--primary" type="submit">登录</button>
+      </form>
+    </div>
+  </body>
+</html>

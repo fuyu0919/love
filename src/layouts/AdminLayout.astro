@@ -1,0 +1,52 @@
+---
+import '../styles/admin.css';
+
+interface Props {
+  title: string;
+  active?: 'dashboard' | 'posts';
+}
+
+const { title, active = 'dashboard' } = Astro.props;
+const admin = Astro.locals.admin;
+const nav = [
+  { key: 'dashboard', href: '/admin', label: '概览' },
+  { key: 'posts', href: '/admin/posts', label: '日记' },
+] as const;
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>{title} · 后台</title>
+  </head>
+  <body>
+    <div class="admin-shell">
+      <aside class="admin-side">
+        <div class="admin-brand">
+          子諭的平凡日记
+          <span>内容后台</span>
+        </div>
+        <nav class="admin-nav">
+          {nav.map((item) => (
+            <a href={item.href} aria-current={active === item.key ? 'page' : undefined}>
+              {item.label}
+            </a>
+          ))}
+        </nav>
+        <div class="admin-side-foot">
+          <a href="/" target="_blank" rel="noopener">查看站点</a>
+          <span>{admin?.username}</span>
+          <form method="post" action="/admin/logout">
+            <button type="submit">退出登录</button>
+          </form>
+        </div>
+      </aside>
+      <main class="admin-main">
+        <slot />
+      </main>
+    </div>
+  </body>
+</html>

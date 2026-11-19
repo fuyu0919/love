@@ -1,0 +1,63 @@
+---
+export const prerender = false;
+
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import PostForm from '../../../components/admin/PostForm.astro';
+import type { PostInput } from '../../../server/db';
+import { deletePost, getPost, updatePost } from '../../../server/db';
+import { parsePostForm } from '../../../server/postForm';
+
+const id = Number(Astro.params.id);
+const post = Number.isInteger(id) ? getPost(id) : undefined;
+if (!post) {
+  return new Response('日记不存在', { status: 404 });
+}
+
+let error = '';
+let input: PostInput = {
+  slug: post.slug,
+  title: post.title,
+  summary: post.summary,
+  body: post.body,
+  tags: JSON.parse(post.tags) as string[],
+  featured: post.featured === 1,
+  status: post.status,
+  pub_date: post.pub_date,
+};
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  if (form.get('action') === 'delete') {
+    deletePost(id);
+    return Astro.redirect('/admin/posts');
+  }
+
+  const parsed = parsePostForm(form);
+  input = parsed.input;
+  if (parsed.error) {
+    error = parsed.error;
+  } else {
+    updatePost(id, input);
+    return Astro.redirect(`/admin/posts/${id}?saved=1`);
+  }
+}
+
+const saved = Astro.url.searchParams.get('saved') === '1';
+---
+
+<AdminLayout title="编辑日记" active="posts">
+  <div class="admin-head">
+    <div>
+      <h1>编辑日记</h1>
+      <p>最后更新：{post.updated_at}</p>
+    </div>
+    <a class="btn" href="/admin/posts">返回列表</a>
+  </div>
+
+  <div class="admin-card">
+    {saved && <div class="alert alert--ok">已保存。</div>}
+    <form method="post">
+      <PostForm input={input} error={error} submitLabel="保存修改" />
+    </form>
+  </div>
+</AdminLayout>
