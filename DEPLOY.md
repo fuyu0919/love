@@ -104,6 +104,29 @@ git push -u origin main
 
 ---
 
+## 后台（backend 分支）
+
+后台使用 Astro Node 适配器 + SQLite，公开页面仍是静态预渲染，只有 `/admin` 走服务端。
+
+本地使用：
+
+```bash
+copy .env.example .env    # 填 ADMIN_USERNAME / ADMIN_PASSWORD
+npm run seed              # 建表、创建管理员、导入现有 Markdown 日记
+npm run dev               # 打开 http://localhost:4321/admin
+```
+
+生产构建与启动：
+
+```bash
+npm run build
+npm run start             # 读取 PORT / HOST，默认 4321
+```
+
+云服务器上的部署结构：Node 22 + `systemd` 守护 `npm run start`，Nginx 反代到 `127.0.0.1:4321` 并配置 HTTPS；`data/site.db` 需要定期备份。
+
+> 当前阶段后台数据与公开页面相互独立：后台改完的日记暂不影响首页和 `/blog`，等接入 OSS 直传后再统一切换数据源。
+
 ## 本地开发常用命令
 
 ```bash

@@ -16,14 +16,15 @@ export const onRequest = defineMiddleware((context, next) => {
   const method = context.request.method;
   if (method !== 'GET' && method !== 'HEAD') {
     const origin = context.request.headers.get('origin');
-    if (origin) {
+    // 部分代理或隐私环境会发送 Origin: null，此时依赖 SameSite=Lax 兜底
+    if (origin && origin !== 'null') {
       let originHost = '';
       try {
         originHost = new URL(origin).host;
       } catch {
         originHost = '';
       }
-      if (originHost !== context.url.host) {
+      if (originHost && originHost !== context.url.host) {
         return new Response('请求来源不合法', { status: 403 });
       }
     }
