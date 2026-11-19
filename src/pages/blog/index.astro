@@ -1,27 +1,34 @@
 ---
-import { getCollection } from 'astro:content';
-import BaseLayout from '../../layouts/BaseLayout.astro';
+export const prerender = false;
 
-const posts = (await getCollection('posts')).sort(
-  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
-);
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { publishedPosts } from '../../server/db';
+
+const posts = publishedPosts();
 
 // 置顶文章排最前，其余按日期倒序
 const sorted = [
-  ...posts.filter((p) => p.data.featured),
-  ...posts.filter((p) => !p.data.featured),
+  ...posts.filter((p) => p.featured === 1),
+  ...posts.filter((p) => p.featured !== 1),
 ];
 
 const byYear = new Map<number, typeof posts>();
 for (const p of sorted) {
-  const y = p.data.pubDate.getFullYear();
+  const y = Number(p.pub_date.slice(0, 4)) || 0;
   if (!byYear.has(y)) byYear.set(y, []);
   byYear.get(y)!.push(p);
 }
 const years = [...byYear.keys()].sort((a, b) => b - a);
 
-const fmt = (d: Date) =>
-  `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const tagsOf = (post: (typeof posts)[number]): string[] => {
+  try {
+    return JSON.parse(post.tags);
+  } catch {
+    return [];
+  }
+};
+
+const fmt = (d: string) => d.slice(5);
 ---
 
 <BaseLayout title="平凡日记" description="子諭的学习笔记、随笔与生活记录">
@@ -36,19 +43,19 @@ const fmt = (d: Date) =>
         {byYear.get(year)!.map((post) => (
           <li>
             <div class="post-main">
-              <a href={`/blog/${post.id}/`}>
-                {post.data.title}
-                {post.data.featured && <span class="badge">置顶</span>}
+              <a href={`/blog/${post.slug}/`}>
+                {post.title}
+                {post.featured === 1 && <span class="badge">置顶</span>}
               </a>
-              {post.data.tags.length > 0 && (
+              {tagsOf(post).length > 0 && (
                 <div class="post-tags">
-                  {post.data.tags.map((tag) => (
+                  {tagsOf(post).map((tag) => (
                     <a class="chip" href={`/tags/${tag}/`}>#{tag}</a>
                   ))}
                 </div>
               )}
             </div>
-            <time datetime={post.data.pubDate.toISOString()}>{fmt(post.data.pubDate)}</time>
+            <time datetime={post.pub_date}>{fmt(post.pub_date)}</time>
           </li>
         ))}
       </ul>

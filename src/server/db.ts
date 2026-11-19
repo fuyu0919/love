@@ -1,4 +1,5 @@
 import Database from 'better-sqlite3';
+import bcrypt from 'bcryptjs';
 import { mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { SCHEMA_SQL } from './schema.mjs';
@@ -17,6 +18,18 @@ function open(): Database.Database {
   database.pragma('foreign_keys = ON');
   database.exec(SCHEMA_SQL);
   database.prepare('DELETE FROM sessions WHERE expires_at < ?').run(Math.floor(Date.now() / 1000));
+
+  // 首次启动时用环境变量创建管理员，服务器部署时无需额外执行 seed
+  const username = process.env.ADMIN_USERNAME ?? '';
+  const password = process.env.ADMIN_PASSWORD ?? '';
+  if (username && password) {
+    const count = (database.prepare('SELECT COUNT(*) AS n FROM admins').get() as { n: number }).n;
+    if (count === 0) {
+      database
+        .prepare('INSERT INTO admins (username, password_hash) VALUES (?, ?)')
+        .run(username, bcrypt.hashSync(password, 12));
+    }
+  }
   return database;
 }
 
@@ -139,4 +152,106 @@ export function mediaStats() {
     videos: count('videos'),
     timeline: count('timeline'),
   };
+}
+
+// ---------- 公开页面 ----------
+
+export function publishedPosts(): Post[] {
+  return db
+    .prepare("SELECT * FROM posts WHERE status = 'published' ORDER BY featured DESC, pub_date DESC, id DESC")
+    .all() as Post[];
+}
+
+export function getPostBySlug(slug: string): Post | undefined {
+  return db
+    .prepare("SELECT * FROM posts WHERE slug = ? AND status = 'published'")
+    .get(slug) as Post | undefined;
+}
+
+export function allTags(): { tag: string; count: number }[] {
+  const map = new Map<string, number>();
+  for (const post of publishedPosts()) {
+    let tags: string[] = [];
+    try {
+      tags = JSON.parse(post.tags);
+    } catch {
+      tags = [];
+    }
+    for (const tag of tags) map.set(tag, (map.get(tag) ?? 0) + 1);
+  }
+  return [...map.entries()]
+    .map(([tag, count]) => ({ tag, count }))
+    .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag));
+}
+
+// ---------- 照片 / 视频 / 时间轴 ----------
+
+export interface Photo {
+  id: number;
+  src: string;
+  caption: string;
+  sort: number;
+}
+
+export function listPhotos(): Photo[] {
+  return db.prepare('SELECT id, src, caption, sort FROM photos ORDER BY sort ASC, id ASC').all() as Photo[];
+}
+
+export function addPhoto(src: string, caption = ''): number {
+  const result = db.prepare('INSERT INTO photos (src, caption) VALUES (?, ?)').run(src, caption);
+  return Number(result.lastInsertRowid);
+}
+
+export function updatePhotoCaption(id: number, caption: string): void {
+  db.prepare('UPDATE photos SET caption = ? WHERE id = ?').run(caption, id);
+}
+
+export function deletePhoto(id: number): void {
+  db.prepare('DELETE FROM photos WHERE id = ?').run(id);
+}
+
+export interface Video {
+  id: number;
+  title: string;
+  src: string;
+  poster: string;
+  sort: number;
+}
+
+export function listVideos(): Video[] {
+  return db
+    .prepare('SELECT id, title, src, poster, sort FROM videos ORDER BY sort ASC, id ASC')
+    .all() as Video[];
+}
+
+export function addVideo(title: string, src: string, poster = ''): number {
+  const result = db.prepare('INSERT INTO videos (title, src, poster) VALUES (?, ?, ?)').run(title, src, poster);
+  return Number(result.lastInsertRowid);
+}
+
+export function deleteVideo(id: number): void {
+  db.prepare('DELETE FROM videos WHERE id = ?').run(id);
+}
+
+export interface TimelineItem {
+  id: number;
+  date: string;
+  title: string;
+  text: string;
+  sort: number;
+}
+
+export function listTimeline(): TimelineItem[] {
+  return db
+    .prepare('SELECT id, date, title, text, sort FROM timeline ORDER BY date ASC, sort ASC, id ASC')
+    .all() as TimelineItem[];
+}
+
+export function addTimeline(date: string, title: string, text = ''): number {
+  const result = db.prepare('INSERT INTO timeline (date, title, text) VALUES (?, ?, ?)').run(date, title, text);
+  return Number(result.lastInsertRowid);
+}
+
+export function deleteTimeline(id: number): void {
+  db.prepare('DELETE FROM timeline WHERE id = ?').run(id);
 }

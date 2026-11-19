@@ -1,0 +1,82 @@
+---
+export const prerender = false;
+
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import OssUploader from '../../components/admin/OssUploader.astro';
+import { addPhoto, deletePhoto, listPhotos, updatePhotoCaption } from '../../server/db';
+import { imageUrl } from '../../server/oss';
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const action = String(form.get('action') ?? 'add');
+  if (action === 'delete') {
+    deletePhoto(Number(form.get('id')));
+  } else if (action === 'caption') {
+    updatePhotoCaption(Number(form.get('id')), String(form.get('caption') ?? '').trim());
+  } else {
+    const src = String(form.get('src') ?? '').trim();
+    if (src) addPhoto(src, String(form.get('caption') ?? '').trim());
+  }
+  return Astro.redirect('/admin/photos');
+}
+
+const photos = listPhotos();
+---
+
+<AdminLayout title="照片" active="photos">
+  <div class="admin-head">
+    <div>
+      <h1>照片</h1>
+      <p>共 {photos.length} 张。上传后会自动走 CDN 与 WebP 压缩。</p>
+    </div>
+  </div>
+
+  <div class="admin-card" style="margin-bottom:20px">
+    <form method="post">
+      <input type="hidden" name="action" value="add" />
+      <div class="form-grid">
+        <OssUploader inputId="photo-src" name="src" label="照片" accept="image/*" />
+        <div class="field">
+          <label for="photo-caption">说明</label>
+          <input id="photo-caption" name="caption" type="text" placeholder="例如：一起看过的城市" />
+        </div>
+        <div class="form-actions">
+          <button class="btn btn--primary" type="submit">添加到照片墙</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  {photos.length === 0 ? (
+    <p class="empty">还没有照片。</p>
+  ) : (
+    <div class="media-grid">
+      {photos.map((photo) => (
+        <div class="media-card">
+          <img src={imageUrl(photo.src, 600)} alt={photo.caption} loading="lazy" />
+          <div class="media-card-body">
+            <p class="file-name">{photo.src}</p>
+            <form method="post">
+              <input type="hidden" name="action" value="caption" />
+              <input type="hidden" name="id" value={photo.id} />
+              <input type="text" name="caption" value={photo.caption} placeholder="照片说明" />
+              <div class="media-card-actions">
+                <button class="btn btn--sm" type="submit">保存</button>
+              </div>
+            </form>
+            <form
+              method="post"
+              onsubmit="return confirm('确定从照片墙移除这张照片？OSS 上的原文件不会被删除。');"
+            >
+              <input type="hidden" name="action" value="delete" />
+              <input type="hidden" name="id" value={photo.id} />
+              <div class="media-card-actions">
+                <button class="btn btn--sm btn--danger" type="submit">移除</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      ))}
+    </div>
+  )}
+</AdminLayout>

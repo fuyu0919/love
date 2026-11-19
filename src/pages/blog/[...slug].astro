@@ -1,38 +1,41 @@
 ---
-import { getCollection, render } from 'astro:content';
-import BaseLayout from '../../layouts/BaseLayout.astro';
+export const prerender = false;
 
-export async function getStaticPaths() {
-  const posts = await getCollection('posts');
-  return posts.map((post) => ({
-    params: { slug: post.id },
-    props: { post },
-  }));
+import { marked } from 'marked';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getPostBySlug } from '../../server/db';
+
+const slug = decodeURIComponent(Astro.params.slug ?? '');
+const post = getPostBySlug(slug);
+if (!post) {
+  return new Response('文章不存在', { status: 404 });
 }
 
-const { post } = Astro.props;
-const { Content } = await render(post);
-const fmt = (d: Date) =>
-  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const html = marked.parse(post.body) as string;
+const tags: string[] = (() => {
+  try {
+    return JSON.parse(post.tags);
+  } catch {
+    return [];
+  }
+})();
 ---
 
-<BaseLayout title={post.data.title} description={post.data.title}>
+<BaseLayout title={post.title} description={post.summary || post.title}>
   <article class="post">
     <header>
-      <h1>{post.data.title}</h1>
+      <h1>{post.title}</h1>
       <div class="post-meta">
-        <time datetime={post.data.pubDate.toISOString()}>{fmt(post.data.pubDate)}</time>
-        {post.data.tags.length > 0 && (
+        <time datetime={post.pub_date}>{post.pub_date}</time>
+        {tags.length > 0 && (
           <div class="post-tags">
-            {post.data.tags.map((tag) => (
+            {tags.map((tag) => (
               <a class="chip" href={`/tags/${tag}/`}>#{tag}</a>
             ))}
           </div>
         )}
       </div>
     </header>
-    <div class="prose">
-      <Content />
-    </div>
+    <div class="prose" set:html={html} />
   </article>
 </BaseLayout>

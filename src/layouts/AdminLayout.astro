@@ -3,7 +3,7 @@ import '../styles/admin.css';
 
 interface Props {
   title: string;
-  active?: 'dashboard' | 'posts';
+  active?: 'dashboard' | 'posts' | 'photos' | 'videos' | 'timeline';
 }
 
 const { title, active = 'dashboard' } = Astro.props;
@@ -11,6 +11,9 @@ const admin = Astro.locals.admin;
 const nav = [
   { key: 'dashboard', href: '/admin', label: '概览' },
   { key: 'posts', href: '/admin/posts', label: '日记' },
+  { key: 'photos', href: '/admin/photos', label: '照片' },
+  { key: 'videos', href: '/admin/videos', label: '视频' },
+  { key: 'timeline', href: '/admin/timeline', label: '时间轴' },
 ] as const;
 ---
 

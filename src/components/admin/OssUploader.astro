@@ -1,0 +1,79 @@
+---
+interface Props {
+  inputId: string;
+  name: string;
+  label?: string;
+  accept?: string;
+  placeholder?: string;
+}
+
+const {
+  inputId,
+  name,
+  label = '地址',
+  accept = 'image/*',
+  placeholder = 'https://... 或 /images/xxx.jpg',
+} = Astro.props;
+---
+
+<div class="field">
+  <label for={inputId}>{label}</label>
+  <div class="upload-row">
+    <input id={inputId} name={name} type="text" placeholder={placeholder} />
+    <input id={`${inputId}-file`} type="file" accept={accept} hidden />
+    <button type="button" class="btn btn--sm" data-upload={inputId}>选择文件</button>
+  </div>
+  <p class="hint" data-status={`${inputId}-status`}>直接上传到 OSS；未配置 OSS 时也可以手动填写地址。</p>
+</div>
+
+<script is:inline>
+  document.querySelectorAll('[data-upload]').forEach((btn) => {
+    const id = btn.getAttribute('data-upload');
+    const input = document.getElementById(id);
+    const fileInput = document.getElementById(id + '-file');
+    const status = document.querySelector('[data-status="' + id + '-status"]');
+    if (!input || !fileInput || !status) return;
+
+    btn.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', async () => {
+      const file = fileInput.files && fileInput.files[0];
+      if (!file) return;
+
+      status.textContent = '获取上传凭证...';
+      let sign;
+      try {
+        const res = await fetch('/admin/api/oss-sign');
+        sign = await res.json();
+        if (!res.ok) throw new Error(sign.error || '未配置 OSS');
+      } catch (error) {
+        status.textContent = '未配置 OSS，请手动填写地址';
+        fileInput.value = '';
+        return;
+      }
+
+      const ext = (file.name.match(/\.[a-zA-Z0-9]+$/) || [''])[0];
+      const key =
+        sign.dir + Date.now() + '-' + Math.random().toString(36).slice(2, 8) + ext;
+
+      const form = new FormData();
+      form.append('key', key);
+      form.append('policy', sign.policy);
+      form.append('OSSAccessKeyId', sign.accessId);
+      form.append('signature', sign.signature);
+      form.append('success_action_status', '200');
+      form.append('file', file);
+
+      status.textContent = '上传中，大文件请稍等...';
+      try {
+        const res = await fetch(sign.host, { method: 'POST', body: form });
+        if (!res.ok) throw new Error(String(res.status));
+        input.value = (sign.cdnHost || sign.host) + '/' + key;
+        status.textContent = '上传完成';
+      } catch {
+        status.textContent = '上传失败，请重试或手动填写地址';
+      } finally {
+        fileInput.value = '';
+      }
+    });
+  });
+</script>

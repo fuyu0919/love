@@ -1,0 +1,88 @@
+---
+export const prerender = false;
+
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { addTimeline, deleteTimeline, listTimeline } from '../../server/db';
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  if (String(form.get('action')) === 'delete') {
+    deleteTimeline(Number(form.get('id')));
+  } else {
+    const date = String(form.get('date') ?? '').trim();
+    const title = String(form.get('title') ?? '').trim();
+    if (date && title) addTimeline(date, title, String(form.get('text') ?? '').trim());
+  }
+  return Astro.redirect('/admin/timeline');
+}
+
+const items = listTimeline();
+---
+
+<AdminLayout title="时间轴" active="timeline">
+  <div class="admin-head">
+    <div>
+      <h1>时间轴</h1>
+      <p>共 {items.length} 条。日期写成「2022.03」这样的年月即可，按时间正序显示。</p>
+    </div>
+  </div>
+
+  <div class="admin-card" style="margin-bottom:20px">
+    <form method="post">
+      <div class="form-grid">
+        <div class="form-row">
+          <div class="field">
+            <label for="tl-date">时间</label>
+            <input id="tl-date" name="date" type="text" placeholder="2022.03" required />
+          </div>
+          <div class="field">
+            <label for="tl-title">事件</label>
+            <input id="tl-title" name="title" type="text" placeholder="第一次一起出门" required />
+          </div>
+        </div>
+        <div class="field">
+          <label for="tl-text">补充说明（可选）</label>
+          <input id="tl-text" name="text" type="text" placeholder="想记住的细节" />
+        </div>
+        <div class="form-actions">
+          <button class="btn btn--primary" type="submit">添加节点</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  {items.length === 0 ? (
+    <p class="empty">还没有节点。</p>
+  ) : (
+    <div class="admin-card">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>时间</th>
+            <th>事件</th>
+            <th>说明</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {items.map((item) => (
+            <tr>
+              <td>{item.date}</td>
+              <td>{item.title}</td>
+              <td>{item.text}</td>
+              <td>
+                <div class="row-actions">
+                  <form method="post" onsubmit="return confirm('确定删除这个节点？');">
+                    <input type="hidden" name="action" value="delete" />
+                    <input type="hidden" name="id" value={item.id} />
+                    <button class="btn btn--sm btn--danger" type="submit">删除</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )}
+</AdminLayout>

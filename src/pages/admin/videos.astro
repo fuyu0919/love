@@ -1,0 +1,87 @@
+---
+export const prerender = false;
+
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import OssUploader from '../../components/admin/OssUploader.astro';
+import { addVideo, deleteVideo, listVideos } from '../../server/db';
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  if (String(form.get('action')) === 'delete') {
+    deleteVideo(Number(form.get('id')));
+  } else {
+    const title = String(form.get('title') ?? '').trim();
+    const src = String(form.get('src') ?? '').trim();
+    if (title && src) addVideo(title, src, String(form.get('poster') ?? '').trim());
+  }
+  return Astro.redirect('/admin/videos');
+}
+
+const videos = listVideos();
+---
+
+<AdminLayout title="视频" active="videos">
+  <div class="admin-head">
+    <div>
+      <h1>视频</h1>
+      <p>共 {videos.length} 支。建议先上传到 OSS，避免占用服务器带宽。</p>
+    </div>
+  </div>
+
+  <div class="admin-card" style="margin-bottom:20px">
+    <form method="post">
+      <div class="form-grid">
+        <div class="field">
+          <label for="video-title">标题</label>
+          <input id="video-title" name="title" type="text" placeholder="例如：第一次一起旅行" required />
+        </div>
+        <OssUploader inputId="video-src" name="src" label="视频文件" accept="video/*" />
+        <OssUploader
+          inputId="video-poster"
+          name="poster"
+          label="封面图（可选）"
+          accept="image/*"
+        />
+        <div class="form-actions">
+          <button class="btn btn--primary" type="submit">添加视频</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  {videos.length === 0 ? (
+    <p class="empty">还没有视频。</p>
+  ) : (
+    <div class="admin-card">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>标题</th>
+            <th>地址</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {videos.map((video) => (
+            <tr>
+              <td>{video.title}</td>
+              <td><span class="file-name">{video.src}</span></td>
+              <td>
+                <div class="row-actions">
+                  <form
+                    method="post"
+                    onsubmit="return confirm('确定移除这支视频？OSS 上的原文件不会被删除。');"
+                  >
+                    <input type="hidden" name="action" value="delete" />
+                    <input type="hidden" name="id" value={video.id} />
+                    <button class="btn btn--sm btn--danger" type="submit">移除</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )}
+</AdminLayout>

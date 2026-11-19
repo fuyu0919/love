@@ -1,14 +1,13 @@
 ---
-import { getCollection } from 'astro:content';
+export const prerender = false;
+
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { SITE, INTRO, DIARY, STORY, STORY_HERO_PHOTOS, GATE } from '../consts';
+import { publishedPosts } from '../server/db';
 
-const posts = (await getCollection('posts')).sort(
-  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
-);
+const posts = publishedPosts();
 const latest = posts.slice(0, 3);
-const fmt = (d: Date) =>
-  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const fmt = (d: string) => d;
 ---
 
 <BaseLayout>
@@ -75,8 +74,8 @@ const fmt = (d: Date) =>
       <ul class="portal-posts">
         {latest.map((post) => (
           <li>
-            <span>{post.data.title}</span>
-            <time datetime={post.data.pubDate.toISOString()}>{fmt(post.data.pubDate)}</time>
+            <span>{post.title}</span>
+            <time datetime={post.pub_date}>{fmt(post.pub_date)}</time>
           </li>
         ))}
       </ul>

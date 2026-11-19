@@ -1,0 +1,22 @@
+# /etc/systemd/system/yujianxiaoquan.service
+# 启用：systemctl daemon-reload && systemctl enable --now yujianxiaoquan
+
+[Unit]
+Description=yujianxiaoquan.online (Astro + Node)
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/yujianxiaoquan.online
+EnvironmentFile=/var/www/yujianxiaoquan.online/.env
+Environment=NODE_ENV=production
+Environment=HOST=127.0.0.1
+Environment=PORT=4321
+ExecStart=/usr/bin/node /var/www/yujianxiaoquan.online/dist/server/entry.mjs
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

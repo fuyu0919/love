@@ -1,9 +1,37 @@
 ---
+export const prerender = false;
+
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { STORY, STORY_HERO_PHOTOS, PHOTOS, VIDEOS, STORY_START, TIMELINE } from '../consts';
+import { listPhotos, listTimeline, listVideos } from '../server/db';
+import { imageUrl } from '../server/oss';
 
 const [year, month, day] = STORY.since.split('-');
 const sinceText = `${year}.${month}.${day}`;
+
+// 后台有数据就用后台的，没有就沿用 consts 里的静态配置
+const dbPhotos = listPhotos();
+const photoList =
+  dbPhotos.length > 0
+    ? dbPhotos.map((photo) => ({
+        src: imageUrl(photo.src, 1200),
+        full: imageUrl(photo.src, 2400),
+        caption: photo.caption,
+      }))
+    : PHOTOS.map((photo) => ({ src: photo.src, full: photo.src, caption: photo.caption }));
+
+const dbVideos = listVideos();
+const videoList =
+  dbVideos.length > 0
+    ? dbVideos.map((video) => ({
+        title: video.title,
+        src: video.src,
+        poster: video.poster ? imageUrl(video.poster, 1200) : '',
+      }))
+    : VIDEOS;
+
+const dbTimeline = listTimeline();
+const timelineItems = dbTimeline.length > 0 ? dbTimeline : TIMELINE;
 ---
 
 <BaseLayout title={STORY.title} description={STORY.description}>
@@ -38,8 +66,8 @@ const sinceText = `${year}.${month}.${day}`;
         <p>从这里出发，往后的日子慢慢记。</p>
       </div>
     </li>
-    {TIMELINE.length > 0 ? (
-      TIMELINE.map((item) => (
+    {timelineItems.length > 0 ? (
+      timelineItems.map((item) => (
         <li class="timeline-item">
           <span class="timeline-date">{item.date}</span>
           <span class="timeline-dot"></span>
@@ -71,13 +99,13 @@ const sinceText = `${year}.${month}.${day}`;
 
   <h2 class="section-title">
     <span>照片墙</span>
-    <span class="section-note">{PHOTOS.length} 张照片</span>
+    <span class="section-note">{photoList.length} 张照片</span>
   </h2>
   <div class="gallery">
-    {PHOTOS.map((photo, i) => (
+    {photoList.map((photo, i) => (
       <figure
         class={`gallery-item${i === 0 ? ' gallery-item--wide' : ''}`}
-        data-photo={photo.src}
+        data-photo={photo.full}
         role="button"
         tabindex="0"
         aria-label={`查看照片：${photo.caption}`}
@@ -92,9 +120,9 @@ const sinceText = `${year}.${month}.${day}`;
     <span>影像</span>
     <span class="section-note">视频</span>
   </h2>
-  {VIDEOS.length > 0 ? (
+  {videoList.length > 0 ? (
     <div class="video-grid">
-      {VIDEOS.map((video) => (
+      {videoList.map((video) => (
         <figure class="video-card">
           <video controls preload="metadata" poster={video.poster} src={video.src}></video>
           <figcaption>{video.title}</figcaption>

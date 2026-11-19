@@ -106,13 +106,13 @@ git push -u origin main
 
 ## 后台（backend 分支）
 
-后台使用 Astro Node 适配器 + SQLite，公开页面仍是静态预渲染，只有 `/admin` 走服务端。
+后台使用 Astro Node 适配器 + SQLite。`backend` 分支用于备案后的云服务器部署，`main` 仍是纯静态版本，Cloudflare Pages 不受影响。
 
 本地使用：
 
 ```bash
 copy .env.example .env    # 填 ADMIN_USERNAME / ADMIN_PASSWORD
-npm run seed              # 建表、创建管理员、导入现有 Markdown 日记
+npm run seed              # 建表、创建管理员、导入现有 Markdown 日记（可重复执行）
 npm run dev               # 打开 http://localhost:4321/admin
 ```
 
@@ -123,9 +123,36 @@ npm run build
 npm run start             # 读取 PORT / HOST，默认 4321
 ```
 
-云服务器上的部署结构：Node 22 + `systemd` 守护 `npm run start`，Nginx 反代到 `127.0.0.1:4321` 并配置 HTTPS；`data/site.db` 需要定期备份。
+### 云服务器部署
 
-> 当前阶段后台数据与公开页面相互独立：后台改完的日记暂不影响首页和 `/blog`，等接入 OSS 直传后再统一切换数据源。
+1. 域名 A 记录指向服务器公网 IP，云厂商安全组放行 80/443。
+2. 把仓库拉到服务器，或用 `scp` 把 `deploy/init-server.sh` 传上去，`bash init-server.sh`。脚本会装 Node 22、Nginx、Certbot，创建 `/var/www/yujianxiaoquan.online`，写好反向代理和 systemd 服务。
+3. 在服务器 `APP/.env` 填好：
+
+```ini
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=换成一个强密码
+DATABASE_PATH=./data/site.db
+OSS_REGION=oss-cn-hangzhou
+OSS_BUCKET=你的桶名
+OSS_ACCESS_KEY_ID=
+OSS_ACCESS_KEY_SECRET=
+OSS_CDN_HOST=https://cdn.yujianxiaoquan.online
+OSS_DIR=uploads
+```
+
+4. 签证书：`certbot --nginx -d yujianxiaoquan.online -d www.yujianxiaoquan.online --email 你的邮箱 --agree-tos --redirect`。
+5. 本地执行 `bash deploy/deploy.sh`（先改脚本里的服务器 IP）：构建、rsync、服务器 `npm ci`、导入日记、重启服务。
+
+Nginx 只做反代，Node 监听 `127.0.0.1:4321`，不直接暴露。数据库在 `APP/data/site.db`，备份直接复制这个文件（连同 `-wal`、`-shm`）即可。
+
+### OSS 与图片
+
+后台「照片 / 视频」页支持浏览器直传 OSS：服务端签发 10 分钟有效的上传凭证，文件不经过服务器带宽。图片展示会自动拼 `x-oss-process` 输出 WebP 并按宽度缩放，配置 `OSS_CDN_HOST` 后走 CDN。
+
+未配置 OSS 时仍可手动填写图片/视频地址，站点功能不受影响。
+
+> 后台保存的日记会直接显示在首页和 `/blog`；照片、视频、时间轴会显示在 `/story`。数据库为空时 `/story` 自动回退到 `src/consts.ts` 里的静态配置。
 
 ## 本地开发常用命令
 
@@ -138,19 +165,9 @@ npm run preview  # 预览构建产物
 
 ## 新增文章
 
-在 `src/content/posts/` 下建 `.md` 文件，文件名用英文短横线格式（如 `my-new-post.md`），头部写：
+推荐直接在后台 `/admin/posts/new` 写，保存后首页和 `/blog` 立即更新。
 
-```yaml
----
-title: "文章标题"
-pubDate: 2026-11-15
-tags:
-  - 随笔
-featured: false
----
-```
-
-正文用 Markdown 写。保存后重新构建即可，无需改任何代码。
+`src/content/posts/*.md` 仍然保留作初始内容：改完 Markdown 后需要重新执行 `npm run seed`（已存在的 slug 不会覆盖），公开页读取的是数据库，不再直接读这些文件。
 
 ## 改个人信息
 
