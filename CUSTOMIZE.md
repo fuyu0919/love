@@ -166,6 +166,16 @@ export const PHOTOS = [
 
 **加照片**：先把图片放进 `public/images/`，再在 `PHOTOS` 里加一行 `{ src: '/images/文件名.jpg', caption: '说明' }`。
 
+**加时间轴**：时间轴从 2021.11 开始，往 `TIMELINE` 里按顺序加事件即可：
+
+```ts
+export const TIMELINE = [
+  { date: '2022.03', title: '一起去的第一个地方', text: '可选的补充说明' },
+];
+```
+
+不填时，时间轴中间会显示一个「待补充」的占位节点。
+
 **加视频**：把视频文件（建议 mp4）放进 `public/videos/`（没有这个目录就新建），然后在 `VIDEOS` 里加一行：
 
 ```ts

@@ -41,8 +41,14 @@ export const STORY = {
   description: '照片、视频，还有那些不想忘记的瞬间。',
   href: '/story/',
   // 改成你们在一起的那一天，首页会显示「在一起 X 天」
-  since: '2023-05-20',
+  since: '2021-11-01',
 };
+
+// 故事开始的时间（时间轴的起点）
+export const STORY_START = '2021.11';
+
+// 时间轴：往数组里按时间顺序加事件即可，date 写 '2022.03' 这样的年月
+export const TIMELINE: { date: string; title: string; text?: string }[] = [];
 
 // 故事页顶部的照片拼图（放 2~4 张合照最好看）
 export const STORY_HERO_PHOTOS = [

@@ -1,6 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { STORY, STORY_HERO_PHOTOS, PHOTOS, VIDEOS } from '../consts';
+import { STORY, STORY_HERO_PHOTOS, PHOTOS, VIDEOS, STORY_START, TIMELINE } from '../consts';
 
 const [year, month, day] = STORY.since.split('-');
 const sinceText = `${year}.${month}.${day}`;
@@ -24,6 +24,50 @@ const sinceText = `${year}.${month}.${day}`;
       ))}
     </div>
   </section>
+
+  <h2 class="section-title">
+    <span>时间轴</span>
+    <span class="section-note">{STORY_START} — 现在</span>
+  </h2>
+  <ol class="timeline-list">
+    <li class="timeline-item">
+      <span class="timeline-date">{STORY_START}</span>
+      <span class="timeline-dot"></span>
+      <div class="timeline-body">
+        <h3>故事开始</h3>
+        <p>从这里出发，往后的日子慢慢记。</p>
+      </div>
+    </li>
+    {TIMELINE.length > 0 ? (
+      TIMELINE.map((item) => (
+        <li class="timeline-item">
+          <span class="timeline-date">{item.date}</span>
+          <span class="timeline-dot"></span>
+          <div class="timeline-body">
+            <h3>{item.title}</h3>
+            {item.text && <p>{item.text}</p>}
+          </div>
+        </li>
+      ))
+    ) : (
+      <li class="timeline-item timeline-item--pending">
+        <span class="timeline-date">待定</span>
+        <span class="timeline-dot"></span>
+        <div class="timeline-body">
+          <h3>中间的日子，待补充</h3>
+          <p>想记住的时间点还在整理，之后会一件件放进来。</p>
+        </div>
+      </li>
+    )}
+    <li class="timeline-item timeline-item--now">
+      <span class="timeline-date">现在</span>
+      <span class="timeline-dot"></span>
+      <div class="timeline-body">
+        <h3>未完待续</h3>
+        <p>故事还在继续。</p>
+      </div>
+    </li>
+  </ol>
 
   <h2 class="section-title">
     <span>照片墙</span>
